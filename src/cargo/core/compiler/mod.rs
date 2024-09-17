@@ -45,7 +45,7 @@ pub mod future_incompat;
 pub(crate) mod job_queue;
 pub(crate) mod layout;
 mod links;
-mod lto;
+pub mod lto;
 mod output_depinfo;
 pub mod rustdoc;
 pub mod standard_lib;
