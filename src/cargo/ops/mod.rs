@@ -14,7 +14,7 @@ pub use self::cargo_package::{check_yanked, package, PackageOpts};
 pub use self::cargo_pkgid::pkgid;
 pub use self::cargo_read_manifest::read_package;
 pub use self::cargo_run::run;
-pub use self::cargo_test::{run_benches, run_tests, TestOptions};
+pub use self::cargo_test::{cmd_builds, run_benches, run_tests, TestOptions};
 pub use self::cargo_uninstall::uninstall;
 pub use self::cargo_update::generate_lockfile;
 pub use self::cargo_update::print_lockfile_changes;
