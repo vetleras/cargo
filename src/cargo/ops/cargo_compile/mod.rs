@@ -60,7 +60,7 @@ mod compile_filter;
 pub use compile_filter::{CompileFilter, FilterRule, LibRule};
 
 mod unit_generator;
-use unit_generator::UnitGenerator;
+pub use unit_generator::UnitGenerator;
 
 mod packages;
 
@@ -574,7 +574,7 @@ where `<compatible-ver>` is the latest version supporting rustc {rustc_version}"
 /// This is also responsible for adjusting the `debug` setting for host
 /// dependencies, turning off debug if the user has not explicitly enabled it,
 /// and the unit is not shared with a target unit.
-fn rebuild_unit_graph_shared(
+pub fn rebuild_unit_graph_shared(
     interner: &UnitInterner,
     unit_graph: UnitGraph,
     roots: &[Unit],
