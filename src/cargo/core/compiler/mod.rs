@@ -294,7 +294,7 @@ fn rustc(
     let target = Target::clone(&unit.target);
     let mode = unit.mode;
 
-    exec.init(build_runner, unit);
+    exec.init(build_runner, unit)?;
     let exec = exec.clone();
 
     let root_output = build_runner.files().host_dest().to_path_buf();
