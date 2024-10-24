@@ -33,7 +33,7 @@ pub fn parse_unstable_flag(value: Option<&str>) -> Vec<String> {
     crates.into_iter().map(|s| s.to_string()).collect()
 }
 
-pub(crate) fn std_crates(gctx: &GlobalContext, units: Option<&[Unit]>) -> Option<Vec<String>> {
+pub fn std_crates(gctx: &GlobalContext, units: Option<&[Unit]>) -> Option<Vec<String>> {
     let crates = gctx.cli_unstable().build_std.as_ref()?.clone();
 
     // Only build libtest if it looks like it is needed.
