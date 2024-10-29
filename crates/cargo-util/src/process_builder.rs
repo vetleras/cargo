@@ -142,6 +142,10 @@ impl ProcessBuilder {
         self.wrappers.last().unwrap_or(&self.program)
     }
 
+    pub fn get_only_args(&self) -> &[OsString] {
+        &self.args
+    }
+
     /// Gets the program arguments.
     pub fn get_args(&self) -> impl Iterator<Item = &OsString> {
         self.wrappers
