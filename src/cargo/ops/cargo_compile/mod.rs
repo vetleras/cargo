@@ -482,54 +482,7 @@ pub fn create_bcx<'a, 'gctx>(
     }
 
     if honor_rust_version.unwrap_or(true) {
-        let rustc_version = target_data.rustc.version.clone().into();
-
-        let mut incompatible = Vec::new();
-        let mut local_incompatible = false;
-        for unit in unit_graph.keys() {
-            let Some(pkg_msrv) = unit.pkg.rust_version() else {
-                continue;
-            };
-
-            if pkg_msrv.is_compatible_with(&rustc_version) {
-                continue;
-            }
-
-            local_incompatible |= unit.is_local();
-            incompatible.push((unit, pkg_msrv));
-        }
-        if !incompatible.is_empty() {
-            use std::fmt::Write as _;
-
-            let plural = if incompatible.len() == 1 { "" } else { "s" };
-            let mut message = format!(
-                "rustc {rustc_version} is not supported by the following package{plural}:\n"
-            );
-            incompatible.sort_by_key(|(unit, _)| (unit.pkg.name(), unit.pkg.version()));
-            for (unit, msrv) in incompatible {
-                let name = &unit.pkg.name();
-                let version = &unit.pkg.version();
-                writeln!(&mut message, "  {name}@{version} requires rustc {msrv}").unwrap();
-            }
-            if ws.is_ephemeral() {
-                if ws.ignore_lock() {
-                    writeln!(
-                        &mut message,
-                        "Try re-running `cargo install` with `--locked`"
-                    )
-                    .unwrap();
-                }
-            } else if !local_incompatible {
-                writeln!(
-                    &mut message,
-                    "Either upgrade rustc or select compatible dependency versions with
-`cargo update <name>@<current-ver> --precise <compatible-ver>`
-where `<compatible-ver>` is the latest version supporting rustc {rustc_version}",
-                )
-                .unwrap();
-            }
-            return Err(anyhow::Error::msg(message));
-        }
+        check_rustc_version_compatibility(ws, &target_data, &unit_graph)?;
     }
 
     let bcx = BuildContext::new(
@@ -545,6 +498,61 @@ where `<compatible-ver>` is the latest version supporting rustc {rustc_version}"
     )?;
 
     Ok(bcx)
+}
+
+pub fn check_rustc_version_compatibility(
+    ws: &Workspace<'_>,
+    target_data: &RustcTargetData<'_>,
+    unit_graph: &UnitGraph,
+) -> CargoResult<()> {
+    let rustc_version = target_data.rustc.version.clone().into();
+
+    let mut incompatible = Vec::new();
+    let mut local_incompatible = false;
+    for unit in unit_graph.keys() {
+        let Some(pkg_msrv) = unit.pkg.rust_version() else {
+            continue;
+        };
+
+        if pkg_msrv.is_compatible_with(&rustc_version) {
+            continue;
+        }
+
+        local_incompatible |= unit.is_local();
+        incompatible.push((unit, pkg_msrv));
+    }
+    if !incompatible.is_empty() {
+        use std::fmt::Write as _;
+
+        let plural = if incompatible.len() == 1 { "" } else { "s" };
+        let mut message =
+            format!("rustc {rustc_version} is not supported by the following package{plural}:\n");
+        incompatible.sort_by_key(|(unit, _)| (unit.pkg.name(), unit.pkg.version()));
+        for (unit, msrv) in incompatible {
+            let name = &unit.pkg.name();
+            let version = &unit.pkg.version();
+            writeln!(&mut message, "  {name}@{version} requires rustc {msrv}").unwrap();
+        }
+        if ws.is_ephemeral() {
+            if ws.ignore_lock() {
+                writeln!(
+                    &mut message,
+                    "Try re-running `cargo install` with `--locked`"
+                )
+                .unwrap();
+            }
+        } else if !local_incompatible {
+            writeln!(
+                &mut message,
+                "Either upgrade rustc or select compatible dependency versions with
+`cargo update <name>@<current-ver> --precise <compatible-ver>`
+where `<compatible-ver>` is the latest version supporting rustc {rustc_version}",
+            )
+            .unwrap();
+        }
+        return Err(anyhow::Error::msg(message));
+    }
+    Ok(())
 }
 
 /// This is used to rebuild the unit graph, sharing host dependencies if possible,
