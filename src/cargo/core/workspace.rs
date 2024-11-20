@@ -1798,6 +1798,7 @@ impl<'gctx> Packages<'gctx> {
                 let source_id = SourceId::for_path(key)?;
                 let manifest = read_manifest(manifest_path, source_id, self.gctx)?;
                 Ok(v.insert(match manifest {
+                    //hello
                     EitherManifest::Real(manifest) => {
                         MaybePackage::Package(Package::new(manifest, manifest_path))
                     }

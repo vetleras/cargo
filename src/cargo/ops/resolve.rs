@@ -401,6 +401,7 @@ pub fn resolve_with_previous<'gctx>(
         registry.lock_patches();
     }
 
+    //hello 
     let summaries: Vec<(Summary, ResolveOpts)> = {
         let _span = tracing::span!(tracing::Level::TRACE, "registry.lock").entered();
         ws.members_with_features(specs, cli_features)?
