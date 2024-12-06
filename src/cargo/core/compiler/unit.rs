@@ -278,7 +278,7 @@ impl UnitInterner {
         Unit { inner }
     }
 
-    fn intern_inner(&self, item: &UnitInner) -> Rc<UnitInner> {
+    pub fn intern_inner(&self, item: &UnitInner) -> Rc<UnitInner> {
         let mut me = self.state.borrow_mut();
         if let Some(item) = me.cache.get(item) {
             return item.clone();

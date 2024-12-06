@@ -1034,7 +1034,7 @@ pub struct UnitFor {
     /// allowing for target-dependent feature resolution within the entire dependency tree.
     /// Note that this target corresponds to the target used to build the units in that
     /// dependency tree, too, but this copy of it is specifically used for feature lookup.
-    artifact_target_for_features: Option<CompileTarget>,
+    pub artifact_target_for_features: Option<CompileTarget>,
 }
 
 /// How Cargo processes the `panic` setting or profiles.

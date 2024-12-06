@@ -48,13 +48,13 @@ use crate::core::compiler::{DefaultExecutor, Executor, UnitInterner};
 use crate::core::profiles::Profiles;
 use crate::core::resolver::features::{self, CliFeatures, FeaturesFor};
 use crate::core::resolver::{HasDevUnits, Resolve};
-use crate::core::{PackageId, PackageSet, SourceId, TargetKind, Workspace};
+use crate::core::{Dependency, PackageId, PackageSet, SourceId, TargetKind, Workspace};
 use crate::drop_println;
 use crate::ops;
 use crate::ops::resolve::WorkspaceResolve;
 use crate::util::context::{GlobalContext, WarningHandling};
 use crate::util::interning::InternedString;
-use crate::util::{CargoResult, StableHasher};
+use crate::util::{CargoResult, Graph, StableHasher};
 
 mod compile_filter;
 pub use compile_filter::{CompileFilter, FilterRule, LibRule};
@@ -286,6 +286,9 @@ pub fn create_bcx<'a, 'gctx>(
         resolved_features,
     } = resolve;
 
+    write_graph(&workspace_resolve.as_ref().unwrap().graph, "/home/vetle/devcargo/workspace_res");
+    write_graph(&resolve.graph, "/home/vetle/devcargo/resolve");
+
     let std_resolve_features = if let Some(crates) = &gctx.cli_unstable().build_std {
         let (std_package_set, std_resolve, std_features) =
             standard_lib::resolve_std(ws, &mut target_data, &build_config, crates)?;
@@ -379,6 +382,7 @@ pub fn create_bcx<'a, 'gctx>(
         has_dev_units,
     };
     let mut units = generator.generate_root_units()?;
+    dbg!(&units);
 
     if let Some(args) = target_rustc_crate_types {
         override_rustc_crate_types(&mut units, args, interner)?;
@@ -425,6 +429,8 @@ pub fn create_bcx<'a, 'gctx>(
         &profiles,
         interner,
     )?;
+
+    dbg!(&unit_graph);
 
     // TODO: In theory, Cargo should also dedupe the roots, but I'm uncertain
     // what heuristics to use in that case.
@@ -498,6 +504,29 @@ pub fn create_bcx<'a, 'gctx>(
     )?;
 
     Ok(bcx)
+}
+
+fn write_graph(graph: &Graph<PackageId, HashSet<Dependency>>, filename: &str) {
+    use std::fmt::Write as _;
+    let mut content = String::new();
+    for pid in graph.iter() {
+        writeln!(content, "{pid}").unwrap();
+        for (dep_pid, deps) in graph.edges(pid) {
+            for dep in deps {
+                writeln!(
+                    content,
+                    "   {dep_pid} - kind: {} - artifact: {:?} - platform: {}",
+                    dep.kind().kind_table(),
+                    dep.artifact(),
+                    dep.platform()
+                        .map(ToString::to_string)
+                        .unwrap_or_default()
+                )
+                .unwrap();
+            }
+        }
+    }
+    std::fs::write(filename, content).unwrap();
 }
 
 pub fn check_rustc_version_compatibility(

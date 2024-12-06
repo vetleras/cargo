@@ -439,11 +439,11 @@ impl Dependency {
         self
     }
 
-    pub(crate) fn set_artifact(&mut self, artifact: Artifact) {
+    pub fn set_artifact(&mut self, artifact: Artifact) {
         Arc::make_mut(&mut self.inner).artifact = Some(artifact);
     }
 
-    pub(crate) fn artifact(&self) -> Option<&Artifact> {
+    pub fn artifact(&self) -> Option<&Artifact> {
         self.inner.artifact.as_ref()
     }
 
@@ -463,9 +463,9 @@ impl Dependency {
 /// This information represents a requirement in the package this dependency refers to.
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct Artifact {
-    inner: Arc<Vec<ArtifactKind>>,
-    is_lib: bool,
-    target: Option<ArtifactTarget>,
+    pub inner: Arc<Vec<ArtifactKind>>,
+    pub is_lib: bool,
+    pub target: Option<ArtifactTarget>,
 }
 
 #[derive(Serialize)]

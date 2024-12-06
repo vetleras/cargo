@@ -195,7 +195,7 @@ pub struct GlobalContext {
     /// A global static IPC control mechanism (used for managing parallel builds)
     jobserver: Option<jobserver::Client>,
     /// Cli flags of the form "-Z something" merged with config file values
-    unstable_flags: CliUnstable,
+    pub unstable_flags: CliUnstable,
     /// Cli flags of the form "-Z something"
     unstable_flags_cli: Option<Vec<String>>,
     /// A handle on curl easy mode for http calls

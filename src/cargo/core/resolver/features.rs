@@ -58,11 +58,11 @@ type ActivateMap = HashMap<PackageFeaturesKey, BTreeSet<InternedString>>;
 
 /// Set of all activated features for all packages in the resolve graph.
 pub struct ResolvedFeatures {
-    activated_features: ActivateMap,
+    pub activated_features: ActivateMap,
     /// Optional dependencies that should be built.
     ///
     /// The value is the `name_in_toml` of the dependencies.
-    activated_dependencies: ActivateMap,
+    pub activated_dependencies: ActivateMap,
     opts: FeatureOpts,
 }
 

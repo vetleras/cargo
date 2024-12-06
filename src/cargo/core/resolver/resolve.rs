@@ -20,7 +20,7 @@ pub struct Resolve {
     /// A graph, whose vertices are packages and edges are dependency specifications
     /// from `Cargo.toml`. We need a `HashSet` here because the same package
     /// might be present in both `[dependencies]` and `[build-dependencies]`.
-    graph: Graph<PackageId, HashSet<Dependency>>,
+    pub graph: Graph<PackageId, HashSet<Dependency>>,
     /// Replacements from the `[replace]` table.
     replacements: HashMap<PackageId, PackageId>,
     /// Inverted version of `replacements`.

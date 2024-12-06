@@ -174,8 +174,17 @@ fn attach_std_deps(
     // Attach the standard library as a dependency of every target unit.
     let mut found = false;
     for (unit, deps) in state.unit_dependencies.iter_mut() {
-        if !unit.kind.is_host() && !unit.mode.is_run_custom_build() {
-            deps.extend(std_roots[&unit.kind].iter().map(|unit| UnitDep {
+        let pred = match unit.kind {
+            CompileKind::Host => false,
+            CompileKind::Target(compile_target) => {
+                compile_target.short_name() == "nvptx64-nvidia-cuda"
+            }
+        };
+        if !unit.kind.is_host() && !unit.mode.is_run_custom_build() && pred {
+            let Some(units) = std_roots.get(&unit.kind) else {
+                panic!("{std_roots:#?} {unit:#?}");
+            };
+            deps.extend(units.iter().map(|unit| UnitDep {
                 unit: unit.clone(),
                 unit_for: UnitFor::new_normal(unit.kind),
                 extern_crate_name: unit.pkg.name(),

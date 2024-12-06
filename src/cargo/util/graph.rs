@@ -25,6 +25,10 @@ impl<N: Eq + Ord + Clone, E: Default + Clone> Graph<N, E> {
             .or_default()
     }
 
+    pub fn remove(&mut self, node: &N, child: &N) -> Option<E> {
+        self.nodes.get_mut(node).and_then(|edges| edges.remove(child))
+    }
+
     /// Returns the graph obtained by reversing all edges.
     pub fn reversed(&self) -> Graph<N, E> {
         let mut ret = Graph::new();
