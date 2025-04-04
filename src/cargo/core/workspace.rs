@@ -61,7 +61,7 @@ pub struct Workspace<'gctx> {
     /// of the workspace. This is `None` in the case that `[workspace]` is
     /// missing, `package.workspace` is missing, and no `Cargo.toml` above
     /// `current_manifest` was found on the filesystem with `[workspace]`.
-    root_manifest: Option<PathBuf>,
+    pub root_manifest: Option<PathBuf>,
 
     /// Shared target directory for all the packages of this workspace.
     /// `None` if the default path of `root/target` should be used.
