@@ -157,7 +157,7 @@ impl<'a, 'gctx> BuildRunner<'a, 'gctx> {
     ///
     /// [`ops::cargo_compile`]: crate::ops::cargo_compile
     #[tracing::instrument(skip_all)]
-    pub fn compile(mut self, exec: &Arc<dyn Executor>) -> CargoResult<Compilation<'gctx>> {
+    pub fn compile(&mut self, exec: &Arc<dyn Executor>) -> CargoResult<()> {
         // A shared lock is held during the duration of the build since rustc
         // needs to read from the `src` cache, and we don't want other
         // commands modifying the `src` cache while it is running.
@@ -171,7 +171,7 @@ impl<'a, 'gctx> BuildRunner<'a, 'gctx> {
         self.lto = super::lto::generate(self.bcx)?;
         self.prepare_units()?;
         self.prepare()?;
-        custom_build::build_map(&mut self)?;
+        custom_build::build_map(self)?;
         self.check_collisions()?;
         self.compute_metadata_for_doc_units();
 
@@ -189,7 +189,7 @@ impl<'a, 'gctx> BuildRunner<'a, 'gctx> {
 
         for unit in &self.bcx.roots {
             let force_rebuild = self.bcx.build_config.force_rebuild;
-            super::compile(&mut self, &mut queue, &mut plan, unit, exec, force_rebuild)?;
+            super::compile(self, &mut queue, &mut plan, unit, exec, force_rebuild)?;
         }
 
         // Now that we've got the full job queue and we've done all our
@@ -203,7 +203,7 @@ impl<'a, 'gctx> BuildRunner<'a, 'gctx> {
         }
 
         // Now that we've figured out everything that we're going to do, do it!
-        queue.execute(&mut self, &mut plan)?;
+        queue.execute(self, &mut plan)?;
 
         if build_plan {
             plan.set_inputs(self.build_plan_inputs()?);
@@ -292,7 +292,7 @@ impl<'a, 'gctx> BuildRunner<'a, 'gctx> {
                 });
             }
 
-            super::output_depinfo(&mut self, unit)?;
+            super::output_depinfo(self, unit)?;
         }
 
         for (script_meta, output) in self.build_script_outputs.lock().unwrap().iter() {
@@ -308,7 +308,7 @@ impl<'a, 'gctx> BuildRunner<'a, 'gctx> {
                     .insert(dir.clone().into_path_buf());
             }
         }
-        Ok(self.compilation)
+        Ok(())
     }
 
     fn collect_tests_and_executables(&mut self, unit: &Unit) -> CargoResult<()> {
