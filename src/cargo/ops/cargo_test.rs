@@ -322,7 +322,7 @@ fn display_no_run_information(
 /// Returns a tuple `(exe_display, process)` where `exe_display` is a string
 /// to display that describes the executable path in a human-readable form.
 /// `process` is the `ProcessBuilder` to use for executing the test.
-fn cmd_builds(
+pub fn cmd_builds(
     gctx: &GlobalContext,
     cwd: &Path,
     unit: &Unit,
