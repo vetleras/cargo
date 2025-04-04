@@ -114,7 +114,9 @@ pub trait Executor: Send + Sync + 'static {
     /// Called after a rustc process invocation is prepared up-front for a given
     /// unit of work (may still be modified for runtime-known dependencies, when
     /// the work is actually executed).
-    fn init(&self, _build_runner: &BuildRunner<'_, '_>, _unit: &Unit) {}
+    fn init(&self, _build_runner: &BuildRunner<'_, '_>, _unit: &Unit) -> CargoResult<()> {
+        Ok(())
+    }
 
     /// In case of an `Err`, Cargo will not continue with the build process for
     /// this package.
@@ -302,7 +304,7 @@ fn rustc(
     let target = Target::clone(&unit.target);
     let mode = unit.mode;
 
-    exec.init(build_runner, unit);
+    exec.init(build_runner, unit)?;
     let exec = exec.clone();
 
     let root_output = build_runner.files().host_dest().to_path_buf();
