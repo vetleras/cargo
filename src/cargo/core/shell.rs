@@ -36,6 +36,7 @@ impl fmt::Debug for Shell {
                 .field("verbosity", &self.verbosity)
                 .field("color_choice", &color_choice)
                 .finish(),
+            ShellOut::Writers { .. } => f.debug_struct("Shell").finish(),
         }
     }
 }
@@ -69,6 +70,15 @@ impl Shell {
         Shell {
             output: ShellOut::Write(AutoStream::never(out)), // strip all formatting on write
             verbosity: Verbosity::Verbose,
+            needs_clear: false,
+            hostname: None,
+        }
+    }
+
+    pub fn from_writers(stdout: Box<dyn Write>, stderr: Box<dyn Write>) -> Self {
+        Self {
+            output: ShellOut::Writers { stdout, stderr },
+            verbosity: Verbosity::Quiet,
             needs_clear: false,
             hostname: None,
         }
@@ -287,14 +297,14 @@ impl Shell {
 
     pub fn out_unicode(&self) -> bool {
         match &self.output {
-            ShellOut::Write(_) => true,
+            ShellOut::Write(_) | ShellOut::Writers { .. } => true,
             ShellOut::Stream { stdout_unicode, .. } => *stdout_unicode,
         }
     }
 
     pub fn err_unicode(&self) -> bool {
         match &self.output {
-            ShellOut::Write(_) => true,
+            ShellOut::Write(_) | ShellOut::Writers { .. } => true,
             ShellOut::Stream { stderr_unicode, .. } => *stderr_unicode,
         }
     }
@@ -307,6 +317,7 @@ impl Shell {
         match self.output {
             ShellOut::Stream { color_choice, .. } => color_choice,
             ShellOut::Write(_) => ColorChoice::Never,
+            ShellOut::Writers { .. } => ColorChoice::Always,
         }
     }
 
@@ -315,6 +326,7 @@ impl Shell {
         match &self.output {
             ShellOut::Write(_) => false,
             ShellOut::Stream { stderr, .. } => supports_color(stderr.current_choice()),
+            ShellOut::Writers { .. } => true,
         }
     }
 
@@ -322,12 +334,13 @@ impl Shell {
         match &self.output {
             ShellOut::Write(_) => false,
             ShellOut::Stream { stdout, .. } => supports_color(stdout.current_choice()),
+            ShellOut::Writers { .. } => true,
         }
     }
 
     pub fn out_hyperlink<D: fmt::Display>(&self, url: D) -> Hyperlink<D> {
         let supports_hyperlinks = match &self.output {
-            ShellOut::Write(_) => false,
+            ShellOut::Write(_) | ShellOut::Writers { .. } => false,
             ShellOut::Stream {
                 stdout, hyperlinks, ..
             } => stdout.current_choice() == anstream::ColorChoice::AlwaysAnsi && *hyperlinks,
@@ -339,7 +352,7 @@ impl Shell {
 
     pub fn err_hyperlink<D: fmt::Display>(&self, url: D) -> Hyperlink<D> {
         let supports_hyperlinks = match &self.output {
-            ShellOut::Write(_) => false,
+            ShellOut::Write(_) | ShellOut::Writers { .. } => false,
             ShellOut::Stream {
                 stderr, hyperlinks, ..
             } => stderr.current_choice() == anstream::ColorChoice::AlwaysAnsi && *hyperlinks,
@@ -441,6 +454,10 @@ enum ShellOut {
         stderr_unicode: bool,
         stderr_term_integration: bool,
     },
+    Writers {
+        stdout: Box<dyn Write>,
+        stderr: Box<dyn Write>,
+    },
 }
 
 impl ShellOut {
@@ -475,6 +492,7 @@ impl ShellOut {
         match self {
             ShellOut::Stream { stdout, .. } => stdout,
             ShellOut::Write(w) => w,
+            ShellOut::Writers { stdout, .. } => stdout,
         }
     }
 
@@ -483,6 +501,7 @@ impl ShellOut {
         match self {
             ShellOut::Stream { stderr, .. } => stderr,
             ShellOut::Write(w) => w,
+            ShellOut::Writers { stderr, .. } => stderr,
         }
     }
 }
